@@ -7,7 +7,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
     "@repo/config": "workspace:*",
     "@repo/db": "workspace:*",
     "drizzle-orm": "^0.36.4",

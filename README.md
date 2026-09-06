@@ -4,7 +4,7 @@
 
 - 前台: apps/web -> https://www.0913610.xyz （Next.js 15 App Router, SSR/ISR, 百度 SEO 友好）
 - 后台: apps/admin -> https://admin.0913610.xyz （NextAuth v5, 完全独立部署）
-- 数据库: packages/db （Drizzle ORM + Neon PostgreSQL）
+- 数据库: packages/db （Drizzle ORM + Supabase PostgreSQL，通用 postgres-js 驱动）
 
 ## 本地开发
 
@@ -20,13 +20,32 @@ Schema 变更后：`pnpm db:generate` 生成新迁移，再 `pnpm db:migrate`。
 
 ## Vercel 部署
 
-1. 在 Neon (https://neon.tech) 创建 PostgreSQL，复制连接串。
+1. 在 Supabase (https://supabase.com) 创建免费 PostgreSQL 项目，复制连接串（Project Settings -> Database -> Connection string -> URI）。
 2. 本地执行 `pnpm db:migrate` 与 `pnpm create-admin` 初始化数据库和管理员。
-3. Vercel 创建两个项目（同一仓库）：
+3. Vercel 创建两个项目（同一仓库 chinaxiaolaoshu/diannaoweixiu）：
    - **web**: Root Directory = `apps/web`，绑定域名 `www.0913610.xyz`，关闭 Deployment Protection（保证蜘蛛可抓取）。
    - **admin**: Root Directory = `apps/admin`，绑定域名 `admin.0913610.xyz`，建议开启 Vercel Protection。
 4. 两项目分别配置 .env.example 中的服务端环境变量（AUTH_SECRET/R2 仅 admin 需要；SITE_URL/REVALIDATE_SECRET 两边都要）。
-5. DNS: `www`、`admin` 分别 CNAME 到 Vercel；裸域名 301 到 www 由 apps/web/middleware.ts 处理。
+5. DNS (Cloudflare): `www`、`admin` 分别 CNAME 到 Vercel 提供的值；裸域名 A 记录指向 Vercel 提示的 IP，裸域 301 到 www 由 apps/web/middleware.ts 处理。
+
+### 环境变量对照表
+
+| 变量 | web | admin | 说明 |
+|---|---|---|---|
+| DATABASE_URL | ✅ | ✅ | Supabase Postgres 连接串（注意加 `?sslmode=require` 时也支持） |
+| SITE_URL | ✅ | ✅ | `https://www.0913610.xyz` |
+| REVALIDATE_SECRET | ✅ | ✅ | 自定义随机串，两边一致（admin 发布后刷新前台 ISR） |
+| SUPABASE_URL | ✅ | ❌ | web middleware (Edge) 查 redirects 表用 |
+| SUPABASE_SERVICE_KEY | ✅ | ❌ | Supabase service_role 密钥，仅服务端 |
+| AUTH_SECRET | ❌ | ✅ | `openssl rand -base64 32` 生成 |
+| R2_* 5 项 | ❌ | ✅ | Cloudflare R2 媒体上传（不配则后台不能传图，不影响其他功能） |
+| BAIDU_PUSH_TOKEN | ❌ | ✅（可选） | 百度主动推送 |
+| NEXT_PUBLIC_CONTACT_PHONE | ✅ | ❌ | 前台展示的联系电话 |
+
+### GitHub Actions 自动部署说明
+
+仓库内置 `.github/workflows/ci.yml`：对每次 push 运行 `pnpm install` + 两个应用的 `next build`，保证构建不挂才允许合入。生产部署由 Vercel Git 集成自动完成，无需 CI 部署密钥。
+
 
 ## SEO 自检清单
 

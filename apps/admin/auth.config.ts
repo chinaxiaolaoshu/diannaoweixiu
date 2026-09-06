@@ -22,8 +22,8 @@ export const authConfig = {
       return token;
     },
     session({ session, token }) {
-      (session.user as Record<string, unknown>).role = token.role;
-      (session.user as Record<string, unknown>).id = token.uid;
+      (session.user as unknown as Record<string, unknown>).role = token.role;
+      (session.user as unknown as Record<string, unknown>).id = token.uid;
       return session;
     },
   },
