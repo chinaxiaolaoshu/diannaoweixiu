@@ -2,9 +2,8 @@ import type { MetadataRoute } from "next";
 import { db, articles, categories, tags } from "@repo/db";
 import { and, eq } from "drizzle-orm";
 import { BASE } from "@/lib/seo";
+import { SITE } from "@repo/config";
 
-// 仅包含已发布内容与公开页面；不含草稿、后台、API、参数 URL
-// 数据库不可达时返回基础页面集，构建成功后由 ISR 运行时自动补全
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const empty = { posts: [] as (typeof articles.$inferSelect)[], cats: [] as (typeof categories.$inferSelect)[], tgs: [] as (typeof tags.$inferSelect)[] };
   let { posts, cats, tgs } = empty;
@@ -21,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/`, lastModified: new Date() },
     { url: `${BASE}/articles`, lastModified: new Date() },
     { url: `${BASE}/service`, lastModified: new Date() },
+    ...SITE.services.map((s) => ({ url: `${BASE}/service/${s.slug}` })),
     { url: `${BASE}/process`, lastModified: new Date() },
     { url: `${BASE}/faq`, lastModified: new Date() },
     { url: `${BASE}/about`, lastModified: new Date() },

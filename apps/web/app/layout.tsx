@@ -1,3 +1,4 @@
+// Updated to include site icon and telephone in LocalBusiness schema
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
@@ -15,6 +16,16 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: s.defaultSeoDescription ?? "个人IT技术服务，服务渭南市及临渭区：电脑维修、监控安装维修、弱电施工、网络布线。",
     robots: IS_PROD ? { index: true, follow: true } : { index: false, follow: false },
+    // 添加关键词 meta，帮助搜索引擎更好识别本地业务
+    keywords: [
+      "渭南电脑维修",
+      "临渭区上门维修",
+      "渭南监控安装",
+      "弱电施工",
+      "网络布线",
+      "上门服务",
+      "技术支持"
+    ].join(", "),
     other: s.baiduVerificationCode ? { "baidu-site-verification": s.baiduVerificationCode } : {},
   };
 }
@@ -34,6 +45,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const jsonLd = [websiteJsonLd(s), localBusinessJsonLd(s)];
   return (
     <html lang="zh-CN">
+      <head>
+        {/* Site favicon */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <header className="border-b">

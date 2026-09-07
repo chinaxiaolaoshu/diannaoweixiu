@@ -54,11 +54,14 @@ export function websiteJsonLd(s: Settings) {
 
 // 本地服务主体：明确服务地区为渭南市临渭区，不伪造其他数据
 export function localBusinessJsonLd(s: Settings) {
+  const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE;
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
+    "@id": `${s.siteUrl}/#business`,
     name: s.siteName,
     url: s.siteUrl,
+    telephone: phone || undefined,
     description: "渭南市临渭区电脑维修、监控安装维修、弱电施工、网络布线个人技术服务",
     areaServed: ["陕西省渭南市", "临渭区"],
     address: { "@type": "PostalAddress", addressRegion: "陕西省", addressLocality: "渭南市", streetAddress: "临渭区" },
