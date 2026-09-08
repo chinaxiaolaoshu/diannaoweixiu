@@ -21,8 +21,8 @@ export default async function ArticleForm({ article }: { article?: ArticleRow })
       {article && <input type="hidden" name="id" value={article.id} />}
       <label htmlFor="title">标题</label>
       <input id="title" type="text" name="title" required defaultValue={article?.title} />
-      <label htmlFor="slug">Slug（小写字母/数字/短横线）</label>
-      <input id="slug" type="text" name="slug" required pattern="[a-z0-9-]+" defaultValue={article?.slug} />
+      <label htmlFor="slug">Slug（留空自动按标题拼音生成，如 weinan-diannao-weixiu）</label>
+      <input id="slug" type="text" name="slug" pattern="[a-z0-9-]*" defaultValue={article?.slug} placeholder="留空自动生成" />
       <label htmlFor="excerpt">摘要</label>
       <textarea id="excerpt" name="excerpt" rows={2} defaultValue={article?.excerpt ?? ""} />
       <label htmlFor="content">正文（HTML，保存时服务端白名单消毒）</label>

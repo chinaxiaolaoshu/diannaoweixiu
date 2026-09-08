@@ -5,6 +5,7 @@ import sanitizeHtml from "sanitize-html";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { pinyin } from "pinyin-pro";
 import {
   db, articles, articleCategories, articleTags, categories, tags,
   siteSettings, redirects,
@@ -12,6 +13,28 @@ import {
 import { requireUser } from "./guard";
 
 const SITE_URL = process.env.SITE_URL ?? "https://www.0913610.xyz";
+
+// 中文标题自动转拼音 slug：渭南电脑维修指南 -> weinan-dian-nao-wei-xiu-zhi-nan
+function titleToSlug(title: string): string {
+  const raw = pinyin(title, { toneType: "none", type: "array", nonZh: "consecutive" }).join("-");
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 100) || `article-${Date.now()}`;
+}
+
+// slug 查重：存在则追加 -2 / -3 ...
+async function uniqueSlug(base: string, excludeId?: number): Promise<string> {
+  let slug = base || `article-${Date.now()}`;
+  let n = 2;
+  while (true) {
+    const rows = await db.select({ id: articles.id }).from(articles).where(eq(articles.slug, slug));
+    if (!rows.length || (excludeId && rows.length === 1 && rows[0].id === excludeId)) return slug;
+    slug = `${base}-${n++}`;
+  }
+}
 
 // 富文本 XSS 白名单消毒
 function clean(html: string) {
@@ -53,7 +76,8 @@ async function baiduPush(url: string) {
 const articleSchema = z.object({
   id: z.coerce.number().optional(),
   title: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/, "slug 仅允许小写字母、数字、短横线"),
+  // slug 可留空：留空时由中文标题自动转拼音生成
+  slug: z.string().max(255).regex(/^[a-z0-9-]*$/, "slug 仅允许小写字母、数字、短横线").optional().default(""),
   excerpt: z.string().max(1000).optional().default(""),
   content: z.string().min(1),
   coverImage: z.string().url().or(z.literal("")).default(""),
@@ -69,7 +93,7 @@ export async function saveArticle(formData: FormData) {
   const parsed = articleSchema.parse({
     id: formData.get("id") || undefined,
     title: formData.get("title"),
-    slug: formData.get("slug"),
+    slug: formData.get("slug") || "",
     excerpt: formData.get("excerpt"),
     content: formData.get("content"),
     coverImage: formData.get("coverImage") || "",
@@ -82,9 +106,14 @@ export async function saveArticle(formData: FormData) {
   const categoryIds = formData.getAll("categoryIds").map(Number).filter(Boolean);
   const tagIds = formData.getAll("tagIds").map(Number).filter(Boolean);
 
+  // slug 留空时自动从中文标题生成；填了则查重
+  const slug = parsed.slug
+    ? await uniqueSlug(parsed.slug, parsed.id)
+    : await uniqueSlug(titleToSlug(parsed.title), parsed.id);
+
   const values = {
     title: parsed.title,
-    slug: parsed.slug,
+    slug,
     excerpt: parsed.excerpt || null,
     content: clean(parsed.content),
     coverImage: parsed.coverImage || null,
@@ -126,8 +155,8 @@ export async function saveArticle(formData: FormData) {
     await db.insert(articleTags).values(tagIds.map((tagId) => ({ articleId: id!, tagId })));
   }
 
-  await revalidateWeb(`/articles/${parsed.slug}`);
-  if (firstPublish) await baiduPush(`${SITE_URL}/articles/${parsed.slug}`);
+  await revalidateWeb(`/articles/${slug}`);
+  if (firstPublish) await baiduPush(`${SITE_URL}/articles/${slug}`);
 
   revalidatePath("/articles");
   redirect("/articles");
