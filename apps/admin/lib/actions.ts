@@ -49,6 +49,36 @@ function clean(html: string) {
   });
 }
 
+// 判断内容是否已经是 HTML（含标签则按原文消毒，保持旧数据兼容）
+function looksLikeHtml(s: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(s);
+}
+
+// 纯文本转 HTML：每个非空行为一个 <p> 段落；连续空行忽略（每行=一段）
+// 行内链接自动转 <a>，URL 自动加 rel="nofollow"
+function textToHtml(text: string): string {
+  const esc = (t: string) => t
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      const safe = esc(line)
+        // 行内 URL 自动转链接（http/https），URL 中的引号/尖括号已被转义不会进入链接
+        .replace(/(https?:\/\/[^\s"']+)/g, '<a href="$1" rel="nofollow">$1</a>');
+      return `<p>${safe}</p>`;
+    })
+    .join("\n");
+}
+
+// 正文最终处理：纯文本自动分段转 <p>；已是 HTML 则原样走白名单消毒
+function processContent(raw: string): string {
+  return clean(looksLikeHtml(raw) ? raw : textToHtml(raw));
+}
+
 // 通知前台刷新 ISR 缓存（失败不阻断流程）
 async function revalidateWeb(path: string) {
   try {
@@ -115,7 +145,7 @@ export async function saveArticle(formData: FormData) {
     title: parsed.title,
     slug,
     excerpt: parsed.excerpt || null,
-    content: clean(parsed.content),
+    content: processContent(parsed.content),
     coverImage: parsed.coverImage || null,
     seoTitle: parsed.seoTitle || null,
     seoDescription: parsed.seoDescription || null,

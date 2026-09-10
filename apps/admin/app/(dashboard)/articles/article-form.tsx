@@ -8,6 +8,22 @@ type ArticleRow = {
   seoDescription: string | null; canonicalUrl: string | null; noindex: boolean;
 };
 
+// 编辑旧文章时，把已存的 HTML 正文还原成可读纯文本（每段一行），方便继续用纯文本方式编辑
+function htmlToText(html: string): string {
+  return html
+    .replace(/<(p|div|h2|h3|li|figcaption)[^>]*>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^\n+|\n+$/g, "");
+}
+
 export default async function ArticleForm({ article }: { article?: ArticleRow }) {
   const [cats, tgs] = await Promise.all([db.select().from(categories), db.select().from(tags)]);
   const selectedCats = article
@@ -25,8 +41,12 @@ export default async function ArticleForm({ article }: { article?: ArticleRow })
       <input id="slug" type="text" name="slug" pattern="[a-z0-9-]*" defaultValue={article?.slug} placeholder="留空自动生成" />
       <label htmlFor="excerpt">摘要</label>
       <textarea id="excerpt" name="excerpt" rows={2} defaultValue={article?.excerpt ?? ""} />
-      <label htmlFor="content">正文（HTML，保存时服务端白名单消毒）</label>
-      <textarea id="content" name="content" rows={14} required defaultValue={article?.content} />
+      <label htmlFor="content">正文（每行一段，回车即可分段，无需任何代码）</label>
+      <textarea id="content" name="content" rows={14} required wrap="soft"
+        className="leading-relaxed"
+        placeholder={"示例：\n渭南电脑维修上门服务覆盖临渭区、高新区。\n\n我们提供系统重装、硬件检测、数据恢复等服务。\n\n第三段内容……"}
+        defaultValue={article ? htmlToText(article.content) : ""} />
+      <p className="text-xs text-gray-400 mt-1">提示：一行文字 = 一个自然段，空一行也可以；保存后自动生成排版好的正文。</p>
       <label htmlFor="coverImage">封面图 URL（可在媒体管理上传后复制）</label>
       <input id="coverImage" type="url" name="coverImage" defaultValue={article?.coverImage ?? ""} />
 
