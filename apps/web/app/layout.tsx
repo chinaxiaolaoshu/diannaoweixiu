@@ -49,6 +49,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Site favicon */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        {/* 头条自动收录：用户浏览页面时页面链接自动被蜘蛛爬取（仅生产环境，避免预览域名被提交收录） */}
+        {IS_PROD && (
+          <script dangerouslySetInnerHTML={{ __html: `(function(){var el=document.createElement("script");el.src="https://lf1-cdn-tos.bytegoofy.com/goofy/ttzz/push.js?2f6d32e5bd190585db6729e15bfeb97875de3ab8c0cfbe42b3ddc107c555edb130632485602430134f60bc55ca391050b680e2741bf7233a8f1da9902314a3fa";el.id="ttzz";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(el,s);})(window)` }} />
+        )}
       </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
