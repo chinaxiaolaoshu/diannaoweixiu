@@ -71,11 +71,11 @@ export default async function ArticleForm({ article }: { article?: ArticleRow })
         </div>
       </fieldset>
 
-      <h2 className="font-bold mt-6">SEO 设置</h2>
-      <label htmlFor="seoTitle">SEO 标题（留空用文章标题）</label>
-      <input id="seoTitle" type="text" name="seoTitle" defaultValue={article?.seoTitle ?? ""} />
-      <label htmlFor="seoDescription">SEO 描述（留空用摘要）</label>
-      <textarea id="seoDescription" name="seoDescription" rows={2} defaultValue={article?.seoDescription ?? ""} />
+      <h2 className="font-bold mt-6">SEO 设置（留空即自动生成，一般无需填写）</h2>
+      <label htmlFor="seoTitle">SEO 标题（自动生成：标题+服务关键词+渭南）</label>
+      <input id="seoTitle" type="text" name="seoTitle" defaultValue={article?.seoTitle ?? ""} placeholder="留空自动生成" />
+      <label htmlFor="seoDescription">SEO 描述（自动生成：摘要或正文开头150字）</label>
+      <textarea id="seoDescription" name="seoDescription" rows={2} defaultValue={article?.seoDescription ?? ""} placeholder="留空自动生成" />
       <label htmlFor="canonicalUrl">Canonical URL（留空自动生成）</label>
       <input id="canonicalUrl" type="url" name="canonicalUrl" defaultValue={article?.canonicalUrl ?? ""} />
       <label className="inline-flex items-center gap-2 mt-3">

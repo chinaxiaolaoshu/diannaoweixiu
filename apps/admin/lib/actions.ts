@@ -79,6 +79,45 @@ function processContent(raw: string): string {
   return clean(looksLikeHtml(raw) ? raw : textToHtml(raw));
 }
 
+// ---------------- SEO 自动生成 ----------------
+// 服务关键词池：命中即认为文章涉及该服务，用于补充 SEO 标题
+const SEO_KEYWORDS = [
+  "电脑维修", "电脑重装", "系统重装", "重装系统", "蓝屏", "死机", "数据恢复", "硬盘",
+  "监控安装", "监控维修", "摄像头", "录像机", "远程监控",
+  "弱电施工", "综合布线", "门禁", "机房",
+  "网络布线", "WiFi", "wifi", "无线", "路由器", "交换机", "上网",
+];
+
+// 提取正文纯文本（去掉 HTML 标签，供 SEO 分析）
+function textOf(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+// SEO 标题自动生成：文章标题 + 命中的服务关键词（最多补2个）+ 地域词，总长≤60
+function autoSeoTitle(title: string, contentHtml: string): string {
+  const text = title + " " + textOf(contentHtml);
+  const hits: string[] = [];
+  for (const kw of SEO_KEYWORDS) {
+    if (text.includes(kw) && !hits.includes(kw)) hits.push(kw);
+    if (hits.length >= 2) break;
+  }
+  let out = title;
+  if (hits.length) out += `_${hits.join("_")}`;
+  if (!out.includes("渭南")) out += "_渭南";
+  return out.length > 60 ? out.slice(0, 60) : out;
+}
+
+// SEO 描述自动生成：摘要优先，否则取正文前段；保证语句完整、≤150字
+function autoSeoDescription(excerpt: string | null | undefined, contentHtml: string): string {
+  if (excerpt && excerpt.trim()) return excerpt.trim().slice(0, 150);
+  const text = textOf(contentHtml);
+  if (!text) return "";
+  const firstSentence = text.slice(0, 150);
+  // 尽量在句号/问号/分号处截断，避免半句话
+  const cut = Math.max(firstSentence.lastIndexOf("。"), firstSentence.lastIndexOf("；"), firstSentence.lastIndexOf("?"), firstSentence.lastIndexOf("，"));
+  return cut > 30 ? firstSentence.slice(0, cut + 1) : firstSentence;
+}
+
 // 通知前台刷新 ISR 缓存（失败不阻断流程）
 async function revalidateWeb(path: string) {
   try {
@@ -136,19 +175,26 @@ export async function saveArticle(formData: FormData) {
   const categoryIds = formData.getAll("categoryIds").map(Number).filter(Boolean);
   const tagIds = formData.getAll("tagIds").map(Number).filter(Boolean);
 
+  // 正文先处理成 HTML（纯文本自动分段 / HTML 消毒）
+  const contentHtml = processContent(parsed.content);
+
   // slug 留空时自动从中文标题生成；填了则查重
   const slug = parsed.slug
     ? await uniqueSlug(parsed.slug, parsed.id)
     : await uniqueSlug(titleToSlug(parsed.title), parsed.id);
 
+  // SEO 标题/描述留空时自动生成（标题+服务关键词+渭南 / 摘要或正文首段）
+  const seoTitle = parsed.seoTitle || autoSeoTitle(parsed.title, contentHtml);
+  const seoDescription = parsed.seoDescription || autoSeoDescription(parsed.excerpt, contentHtml);
+
   const values = {
     title: parsed.title,
     slug,
     excerpt: parsed.excerpt || null,
-    content: processContent(parsed.content),
+    content: contentHtml,
     coverImage: parsed.coverImage || null,
-    seoTitle: parsed.seoTitle || null,
-    seoDescription: parsed.seoDescription || null,
+    seoTitle,
+    seoDescription,
     canonicalUrl: parsed.canonicalUrl || null,
     noindex: parsed.noindex,
     status: parsed.status,
