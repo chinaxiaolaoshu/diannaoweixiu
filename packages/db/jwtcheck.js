@@ -1,0 +1,10 @@
+const jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZWxzbmd3Ynd6eHR4ZWlycW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2OTg4MDgsImV4cCI6MjEwNDI3NDgwOH0.IyqGAkdqK7RcLHBGEzVycyNqE8DrmIe0YQqP85DFGxM";
+const payload = jwt.split(".")[1];
+let b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+while (b64.length % 4) b64 += "=";
+const json = Buffer.from(b64, "base64").toString("utf8");
+const obj = JSON.parse(json);
+console.log("JWT ref =", obj.ref);
+console.log("ref length =", obj.ref.length);
+console.log("chars:", [...obj.ref].map((c, i) => `${i}:${c}`).join(" "));
+console.log("iat =", new Date(obj.iat * 1000).toISOString());

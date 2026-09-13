@@ -1,0 +1,1 @@
+﻿const postgres=require("postgres");const sql=postgres(process.env.DATABASE_URL,{prepare:false,connect_timeout:15});(async()=>{try{const r=await sql`SELECT count(*)::int AS n FROM articles`;console.log("OK articles=",r[0].n)}catch(e){console.log("FAIL:",e.code,e.message.slice(0,120))}finally{await sql.end({timeout:5})}})()

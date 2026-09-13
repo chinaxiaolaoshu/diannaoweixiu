@@ -1,0 +1,1 @@
+﻿const postgres=require("postgres");(async()=>{const sql=postgres(process.env.DATABASE_URL,{prepare:false,max:1,connect_timeout:15});try{await fetch(process.env.REVALIDATE_URL,{method:"POST"}).then(r=>console.log("revalidate:",r.status));}catch(e){console.log("revalidate err:",e.message)}finally{await sql.end({timeout:5}).catch(()=>{})}})()

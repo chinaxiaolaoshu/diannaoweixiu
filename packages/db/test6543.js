@@ -1,0 +1,1 @@
+﻿const postgres=require("postgres");const sql=postgres(process.env.DATABASE_URL,{prepare:false});(async()=>{const r=await sql`SELECT id,slug,title,status FROM articles ORDER BY id`;console.log("ROWS:"+r.length);console.log(JSON.stringify(r.map(x=>({id:x.id,slug:x.slug.slice(0,40),status:x.status})),null,1));await sql.end()})()

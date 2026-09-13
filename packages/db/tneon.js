@@ -1,0 +1,1 @@
+﻿const postgres=require("postgres");(async()=>{const sql=postgres(process.env.DATABASE_URL,{prepare:false,max:1,connect_timeout:15});try{const r=await sql`SELECT version()`;console.log("NEON OK:",r[0].version.slice(0,40))}catch(e){console.log("FAIL:",e.code,e.message.slice(0,140))}finally{await sql.end({timeout:5}).catch(()=>{})}})()

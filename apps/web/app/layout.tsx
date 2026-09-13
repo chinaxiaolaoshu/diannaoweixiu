@@ -36,8 +36,7 @@ const NAV = [
   { href: "/articles", label: "技术文章" },
   { href: "/process", label: "服务流程" },
   { href: "/faq", label: "常见问题" },
-  { href: "/about", label: "关于我" },
-  { href: "/contact", label: "联系我" },
+  { href: "/about", label: "关于我们" },
 ];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

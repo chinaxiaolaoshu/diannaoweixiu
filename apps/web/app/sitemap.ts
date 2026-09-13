@@ -24,7 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/process`, lastModified: new Date() },
     { url: `${BASE}/faq`, lastModified: new Date() },
     { url: `${BASE}/about`, lastModified: new Date() },
-    { url: `${BASE}/contact`, lastModified: new Date() },
     ...posts.map((p) => ({ url: `${BASE}/articles/${p.slug}`, lastModified: p.updatedAt })),
     ...cats.map((c) => ({ url: `${BASE}/categories/${c.slug}`, lastModified: new Date() })),
     ...tgs.map((t) => ({ url: `${BASE}/tags/${t.slug}`, lastModified: new Date() })),
