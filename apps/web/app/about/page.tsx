@@ -21,7 +21,7 @@ export default async function AboutPage() {
         <div className="prose mt-4 max-w-none" dangerouslySetInnerHTML={{ __html: s.aboutContent }} />
       ) : (
         <div className="mt-4 space-y-3 text-gray-700">
-          <p>我是一名渭南本地的个人 IT 技术服务者，长期从事电脑维修、监控安装与维修、弱电施工和网络布线工作。</p>
+          <p>渭南本地的个人 IT 技术服务者，长期从事电脑维修、监控安装与维修、弱电施工和网络布线工作。</p>
           <p>服务范围仅限渭南市及临渭区，支持上门服务，价格透明，先报价后施工。</p>
           <p>电话：{s.siteName} | 微信：请在线留言</p>
         </div>
