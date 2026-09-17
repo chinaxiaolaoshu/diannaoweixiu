@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
-import { getSettings } from "@/lib/queries";
+import { getSettings, getContactPhone } from "@/lib/queries";
 import { pageMetadata } from "@/lib/seo";
 import ContactForm from "@/components/contact-form";
 
@@ -15,6 +15,8 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function AboutPage() {
   const s = await getSettings();
+  const phone = getContactPhone(s);
+  const hours = s.openingHours ?? SITE.openingHoursLabel;
   return (
     <section>
       <h1 className="text-2xl font-bold">关于我们</h1>
@@ -49,11 +51,11 @@ export default async function AboutPage() {
       <h2 className="text-xl font-bold mt-10 mb-4">联系我们</h2>
       <div className="space-y-2 text-gray-700">
         <p>服务地区：陕西省渭南市临渭区（城区、高新区及下辖乡镇，支持上门）</p>
-        <p>服务时间：{SITE.openingHoursLabel}</p>
-        {SITE.phone && (
+        <p>服务时间：{hours}</p>
+        {phone && (
           <p>
-            电话：<a href={`tel:${SITE.phone}`} className="text-blue-600 font-bold">{SITE.phone}</a>
-            {SITE.wechat && <span>（微信同号）</span>}
+            电话：<a href={`tel:${phone}`} className="text-blue-600 font-bold">{phone}</a>
+            {(s.wechat || SITE.wechat) && <span>（微信同号）</span>}
           </p>
         )}
       </div>
