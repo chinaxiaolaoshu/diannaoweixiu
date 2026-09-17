@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE } from "@repo/config";
 
 export const IS_PROD = process.env.VERCEL_ENV === "production";
 export const BASE = process.env.SITE_URL ?? "https://www.0913610.xyz";
@@ -40,31 +41,119 @@ export function buildArticleMetadata(a: ArticleLike): Metadata {
   };
 }
 
-type Settings = { siteName: string; siteUrl: string; defaultSeoDescription: string | null };
+type Settings = {
+  siteName: string;
+  siteUrl: string;
+  defaultSeoTitle: string | null;
+  defaultSeoDescription: string | null;
+};
 
 export function websiteJsonLd(s: Settings) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: s.siteName,
+    alternateName: "渭南电脑维修_监控安装",
     url: s.siteUrl,
     inLanguage: "zh-CN",
   };
 }
 
-// 本地服务主体：明确服务地区为渭南市临渭区，不伪造其他数据
+// 本地服务主体：数据全部来自 config 真实信息，不伪造评分/评价
 export function localBusinessJsonLd(s: Settings) {
-  const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE;
+  const phone = SITE.phone;
+  const tel = phone ? `+86${phone.replace(/^86/, "")}` : undefined;
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": `${s.siteUrl}/#business`,
     name: s.siteName,
+    alternateName: "渭南电脑维修_监控安装",
     url: s.siteUrl,
-    telephone: phone || undefined,
-    description: "渭南市临渭区电脑维修、监控安装维修、弱电施工、网络布线个人技术服务",
-    areaServed: ["陕西省渭南市", "临渭区"],
-    address: { "@type": "PostalAddress", addressRegion: "陕西省", addressLocality: "渭南市", streetAddress: "临渭区" },
+    telephone: tel,
+    description: s.defaultSeoDescription ?? "渭南市临渭区电脑维修、监控安装维修、弱电施工、网络布线个人技术服务",
+    image: [`${s.siteUrl}/og-image.svg`],
+    logo: `${s.siteUrl}/favicon.svg`,
+    priceRange: SITE.priceRange,
+    currenciesAccepted: "CNY",
+    paymentAccepted: "现金,微信支付,支付宝",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "CN",
+      addressRegion: "陕西省",
+      addressLocality: "渭南市",
+      // 上门服务无门店：街道地址写服务主区，不编造具体门牌
+      streetAddress: "陕西省渭南市临渭区（上门服务）",
+      postalCode: "714000",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 34.5022,
+      longitude: 109.5096,
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: SITE.openingHours.days,
+        opens: SITE.openingHours.opens,
+        closes: SITE.openingHours.closes,
+      },
+    ],
+    areaServed: SITE.serviceAreas.map((a) => ({
+      "@type": "AdministrativeArea",
+      name: a.isPrimary ? `陕西省渭南市${a.name}` : `陕西省渭南市${a.name}（仅咨询）`,
+    })),
+    knowsAbout: ["电脑维修", "监控安装", "监控维修", "网络布线", "WiFi覆盖优化", "弱电施工", "数据恢复"],
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: tel,
+      contactType: "customer service",
+      areaServed: "CN",
+      availableLanguage: ["zh-CN"],
+    },
+  };
+}
+
+// 服务页 Service 结构化数据：含 offer 明细，帮助搜索引擎理解服务与价格区间
+export function serviceJsonLd(s: Settings, sv: { slug: string; name: string; desc: string }) {
+  const priceNote = SITE.priceTable.find((p) => p.item.includes(sv.name.slice(0, 2)));
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `渭南${sv.name}`,
+    serviceType: sv.name,
+    description: sv.desc,
+    url: `${s.siteUrl}/service/${sv.slug}`,
+    inLanguage: "zh-CN",
+    areaServed: SITE.serviceAreas.filter((a) => a.isPrimary).map((a) => ({
+      "@type": "AdministrativeArea",
+      name: `陕西省渭南市${a.name}`,
+    })),
+    provider: { "@id": `${s.siteUrl}/#business` },
+    offers: priceNote
+      ? {
+          "@type": "Offer",
+          priceCurrency: "CNY",
+          priceSpecification: {
+            "@type": "PriceSpecification",
+            price: priceNote.price,
+            priceCurrency: "CNY",
+            description: priceNote.note,
+          },
+        }
+      : undefined,
+  };
+}
+
+export function faqPageJsonLd(faqs: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
   };
 }
 
