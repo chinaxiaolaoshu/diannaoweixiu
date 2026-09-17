@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
 import { pageMetadata, breadcrumbJsonLd, serviceJsonLd, faqPageJsonLd, BASE } from "@/lib/seo";
-import { getSettings } from "@/lib/queries";
+import { getSettings, getContactPhone } from "@/lib/queries";
 
 export function generateStaticParams() {
   return SITE.services.map((s) => ({ slug: s.slug }));
@@ -13,9 +13,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const sv = SITE.services.find((s) => s.slug === slug);
   if (!sv) return { robots: { index: false, follow: false } };
+  const s = await getSettings();
+  const phone = getContactPhone(s);
   return pageMetadata({
     title: `渭南${sv.name}_临渭区上门服务`,
-    description: `${sv.desc}临渭区内2小时响应，先报价后施工，7天质保。电话 ${SITE.phone}。`,
+    description: `${sv.desc}临渭区内2小时响应，先报价后施工，7天质保。电话 ${phone}。`,
     path: `/service/${slug}`,
   });
 }
@@ -29,6 +31,8 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const sv = SITE.services.find((s) => s.slug === slug);
   if (!sv) notFound();
   const s = await getSettings();
+  const phone = getContactPhone(s);
+  const hours = s.openingHours ?? SITE.openingHoursLabel;
 
   const breadcrumbs = [
     { name: "首页", url: `${BASE}/` },
@@ -118,14 +122,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       <section className="mt-6">
         <h2 className="text-lg font-bold">服务范围</h2>
         <p className="mt-2 text-gray-700">
-          {SITE.serviceArea}，临渭区全域支持上门，{SITE.openingHoursLabel}，先报价后施工。华州区等周边区县可电话免费咨询。
+          {SITE.serviceArea}，临渭区全域支持上门，{hours}，先报价后施工。华州区等周边区县可电话免费咨询。
         </p>
         <p className="mt-2 text-sm text-gray-600">
           价格参考请查看 <Link href="/" className="text-blue-600 hover:underline">首页价格表</Link>，服务流程见 <Link href="/process" className="text-blue-600 hover:underline">服务流程</Link>。
         </p>
-        {SITE.phone && (
-          <a href={`tel:${SITE.phone}`} className="inline-flex items-center justify-center mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium min-h-[44px]">
-            电话咨询：{SITE.phone}
+        {phone && (
+          <a href={`tel:${phone}`} className="inline-flex items-center justify-center mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium min-h-[44px]">
+            电话咨询：{phone}
           </a>
         )}
       </section>
