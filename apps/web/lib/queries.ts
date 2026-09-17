@@ -26,8 +26,20 @@ export async function getSettings() {
       baiduVerificationCode: null,
       baiduTongjiCode: null,
       aboutContent: null,
+      phone: null,
+      wechat: null,
+      openingHours: null,
+      priceRange: null,
+      seoKeywords: null,
+      serviceAreaDesc: null,
+      robotsExtra: null,
     }
   );
+}
+
+// 联系电话统一取数：DB 优先，env 兜底（DB 不可达时仍可展示）
+export function getContactPhone(s: { phone: string | null }): string {
+  return s.phone || process.env.NEXT_PUBLIC_CONTACT_PHONE || "";
 }
 
 export async function listPublished(page = 1, perPage = 10) {
