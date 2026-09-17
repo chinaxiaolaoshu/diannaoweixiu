@@ -76,6 +76,15 @@ export const siteSettings = pgTable("site_settings", {
   baiduVerificationCode: varchar("baidu_verification_code", { length: 255 }),
   baiduTongjiCode: text("baidu_tongji_code"),
   aboutContent: text("about_content"),
+  // —— 联系方式（NAP 一致性核心：页脚/关于页/JSON-LD 三处统一从此取值）——
+  phone: varchar("phone", { length: 30 }),
+  wechat: varchar("wechat", { length: 100 }),
+  openingHours: varchar("opening_hours", { length: 255 }),
+  priceRange: varchar("price_range", { length: 100 }),
+  // —— SEO 爬虫友好设置 ——
+  seoKeywords: varchar("seo_keywords", { length: 500 }),
+  serviceAreaDesc: varchar("service_area_desc", { length: 500 }),
+  robotsExtra: text("robots_extra"),
 });
 
 export const redirects = pgTable("redirects", {
