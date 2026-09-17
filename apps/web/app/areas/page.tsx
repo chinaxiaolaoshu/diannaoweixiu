@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
+import { getSettings, getContactPhone } from "@/lib/queries";
 import { pageMetadata, breadcrumbJsonLd, BASE } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -10,7 +11,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/areas",
 });
 
-export default function AreasPage() {
+export default async function AreasPage() {
+  const s = await getSettings();
+  const phone = getContactPhone(s);
   const breadcrumbs = [
     { name: "首页", url: `${BASE}/` },
     { name: "服务区域", url: `${BASE}/areas` },
@@ -55,12 +58,12 @@ export default function AreasPage() {
         <p className="text-sm text-gray-700 mt-2">
           其他区域请电话咨询，简单故障可远程指导解决；如确需现场施工，可协助对接周边师傅。
         </p>
-        {SITE.phone && (
+        {phone && (
           <Link
-            href={`tel:${SITE.phone}`}
+            href={`tel:${phone}`}
             className="inline-flex items-center justify-center mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium min-h-[48px]"
           >
-            电话咨询：{SITE.phone}
+            电话咨询：{phone}
           </Link>
         )}
       </section>
