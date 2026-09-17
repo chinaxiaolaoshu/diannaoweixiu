@@ -285,6 +285,27 @@ export async function deleteTag(formData: FormData) {
 }
 
 // ---------------- 站点设置 ----------------
+// 电话格式校验：允许 11 位手机号或带区号/短横线的固话，拒绝特殊字符
+function normalizePhone(input: string): string {
+  const trimmed = input.trim().replace(/[\s-]/g, "");
+  if (!/^1[3-9]\d{9}$/.test(trimmed) && !/^0\d{9,11}$/.test(trimmed)) {
+    throw new Error("电话格式不正确：请输入 11 位手机号（如 15609186302）或带区号的固话（如 09132109999）");
+  }
+  return trimmed;
+}
+
+// robots_extra：每行一条 Disallow 路径，校验必须以 / 开头
+function normalizeRobotsExtra(input: string): string {
+  const lines = input
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  for (const l of lines) {
+    if (!l.startsWith("/")) throw new Error(`robots 自定义规则 "${l}" 必须以 / 开头`);
+  }
+  return lines.join("\n");
+}
+
 const settingsSchema = z.object({
   siteName: z.string().min(1).max(100),
   siteUrl: z.string().url(),
@@ -294,6 +315,15 @@ const settingsSchema = z.object({
   baiduVerificationCode: z.string().max(255).optional().default(""),
   baiduTongjiCode: z.string().max(5000).optional().default(""),
   aboutContent: z.string().max(100000).optional().default(""),
+  // 联系方式
+  phone: z.string().max(30).optional().default(""),
+  wechat: z.string().max(100).optional().default(""),
+  openingHours: z.string().max(255).optional().default(""),
+  priceRange: z.string().max(100).optional().default(""),
+  // SEO 设置
+  seoKeywords: z.string().max(500).optional().default(""),
+  serviceAreaDesc: z.string().max(500).optional().default(""),
+  robotsExtra: z.string().max(5000).optional().default(""),
 });
 
 export async function updateSettings(formData: FormData) {
@@ -307,7 +337,21 @@ export async function updateSettings(formData: FormData) {
     baiduVerificationCode: formData.get("baiduVerificationCode") || "",
     baiduTongjiCode: formData.get("baiduTongjiCode") || "",
     aboutContent: formData.get("aboutContent") || "",
+    phone: formData.get("phone") || "",
+    wechat: formData.get("wechat") || "",
+    openingHours: formData.get("openingHours") || "",
+    priceRange: formData.get("priceRange") || "",
+    seoKeywords: formData.get("seoKeywords") || "",
+    serviceAreaDesc: formData.get("serviceAreaDesc") || "",
+    robotsExtra: formData.get("robotsExtra") || "",
   });
+
+  // 电话必填且校验格式（NAP 一致性核心字段）
+  const phone = p.phone ? normalizePhone(p.phone) : "";
+  if (!phone) throw new Error("联系电话为必填项");
+
+  const robotsExtra = p.robotsExtra ? normalizeRobotsExtra(p.robotsExtra) : "";
+
   const values = {
     siteName: p.siteName,
     siteUrl: p.siteUrl,
@@ -317,12 +361,21 @@ export async function updateSettings(formData: FormData) {
     baiduVerificationCode: p.baiduVerificationCode || null,
     baiduTongjiCode: p.baiduTongjiCode || null,
     aboutContent: p.aboutContent ? clean(p.aboutContent) : null,
+    phone,
+    wechat: p.wechat || null,
+    openingHours: p.openingHours || null,
+    priceRange: p.priceRange || null,
+    seoKeywords: p.seoKeywords || null,
+    serviceAreaDesc: p.serviceAreaDesc || null,
+    robotsExtra: robotsExtra || null,
   };
   const [existing] = await db.select().from(siteSettings).limit(1);
   if (existing) await db.update(siteSettings).set(values).where(eq(siteSettings.id, existing.id));
   else await db.insert(siteSettings).values(values);
+  // 联系方式/SEO 变更影响全站：刷新首页、关于、联系、布局与 sitemap/robots
   await revalidateWeb("/");
   await revalidateWeb("/about");
+  await revalidateWeb("/contact");
   revalidatePath("/settings");
 }
 
