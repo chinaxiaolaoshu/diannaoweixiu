@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
-import { listPublished, getSettings } from "@/lib/queries";
+import { listPublished, getSettings, getContactPhone } from "@/lib/queries";
 import { pageMetadata, faqPageJsonLd, BASE } from "@/lib/seo";
 import ContactForm from "@/components/contact-form";
 
@@ -9,11 +9,13 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
+  const phone = getContactPhone(s);
+  const hours = s.openingHours ?? SITE.openingHoursLabel;
   return pageMetadata({
     title: s.defaultSeoTitle ?? `渭南电脑维修_临渭区上门修电脑_监控安装维修 - ${s.siteName}`,
     description:
       s.defaultSeoDescription ??
-      `渭南市临渭区电脑上门维修、监控摄像头安装与维修、网络布线服务。${SITE.openingHoursLabel}，2小时响应，先报价后施工，7天质保。电话 ${SITE.phone}。`,
+      `渭南市临渭区电脑上门维修、监控摄像头安装与维修、网络布线服务。${hours}，2小时响应，先报价后施工，7天质保。电话 ${phone}。`,
     path: "/",
   });
 }
@@ -75,6 +77,8 @@ const HOME_FAQS = [
 export default async function HomePage() {
   const { items } = await listPublished(1, 5);
   const s = await getSettings();
+  const phone = getContactPhone(s);
+  const hours = s.openingHours ?? SITE.openingHoursLabel;
 
   const homeSchema = {
     "@context": "https://schema.org",
@@ -94,12 +98,12 @@ export default async function HomePage() {
       <section className="py-8 bg-gradient-to-b from-blue-50 to-white -mx-4 px-4 sm:mx-0 sm:px-0 rounded-b-lg">
         <h1 className="text-3xl font-bold text-gray-900">渭南电脑维修_监控安装上门服务</h1>
         <p className="mt-3 text-lg text-gray-700 max-w-2xl">
-          渭南市临渭区专业 IT 上门技术服务：台式机/笔记本维修、监控摄像头安装与维修、弱电施工、网络布线与 WiFi 全屋覆盖。家庭、商铺、农村、办公室均可上门，{SITE.openingHoursLabel}，临渭区内 2 小时响应，先报价后施工，7 天质保。
+          渭南市临渭区专业 IT 上门技术服务：台式机/笔记本维修、监控摄像头安装与维修、弱电施工、网络布线与 WiFi 全屋覆盖。家庭、商铺、农村、办公室均可上门，{hours}，临渭区内 2 小时响应，先报价后施工，7 天质保。
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          {SITE.phone && (
-            <a href={`tel:${SITE.phone}`} className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium min-h-[48px] text-lg">
-              立即致电：{SITE.phone}
+          {phone && (
+            <a href={`tel:${phone}`} className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium min-h-[48px] text-lg">
+              立即致电：{phone}
             </a>
           )}
           <Link href="/contact" className="inline-flex items-center justify-center border border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded font-medium min-h-[48px] text-lg">
