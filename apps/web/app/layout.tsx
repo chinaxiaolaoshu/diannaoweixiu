@@ -4,9 +4,11 @@ import "./globals.css";
 import { SITE } from "@repo/config";
 import { getSettings } from "@/lib/queries";
 import { websiteJsonLd, localBusinessJsonLd, IS_PROD } from "@/lib/seo";
+import { getContactPhone } from "@/lib/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
+  const phone = getContactPhone(s);
   return {
     metadataBase: new URL(s.siteUrl),
     title: {
@@ -15,16 +17,18 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: s.defaultSeoDescription ?? "渭南电脑上门维修、监控安装维修、弱电施工、网络布线服务。临渭区2小时响应，先报价后施工，7天质保。电话预约。",
     robots: IS_PROD ? { index: true, follow: true } : { index: false, follow: false },
-    keywords: [
-      "渭南电脑维修",
-      "渭南上门修电脑",
-      "渭南监控安装",
-      "渭南摄像头安装",
-      "临渭区电脑维修",
-      "华州区监控安装",
-      "渭南网络布线",
-      "弱电施工",
-    ].join(", "),
+    keywords: s.seoKeywords
+      ? s.seoKeywords
+      : [
+          "渭南电脑维修",
+          "渭南上门修电脑",
+          "渭南监控安装",
+          "渭南摄像头安装",
+          "临渭区电脑维修",
+          "华州区监控安装",
+          "渭南网络布线",
+          "弱电施工",
+        ].join(", "),
     other: s.baiduVerificationCode ? { "baidu-site-verification": s.baiduVerificationCode } : {},
   };
 }
@@ -49,6 +53,7 @@ const NAV = [
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const s = await getSettings();
+  const phone = getContactPhone(s);
   const jsonLd = [websiteJsonLd(s), localBusinessJsonLd(s)];
   return (
     <html lang="zh-CN">
@@ -103,9 +108,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
             <div>
               <p className="font-bold text-gray-900 mb-2">联系我们</p>
-              <p>{SITE.openingHoursLabel}</p>
-              {SITE.phone && <p className="mt-1">电话：<a href={`tel:${SITE.phone}`} className="text-blue-600 font-bold">{SITE.phone}</a></p>}
-              {SITE.wechat && <p>微信：{SITE.wechat}</p>}
+              <p>{s.openingHours ?? SITE.openingHoursLabel}</p>
+              {phone && <p className="mt-1">电话：<a href={`tel:${phone}`} className="text-blue-600 font-bold">{phone}</a></p>}
+              {(s.wechat || SITE.wechat) && <p>微信：{s.wechat || SITE.wechat}</p>}
             </div>
           </div>
           <div className="border-t">
