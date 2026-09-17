@@ -46,7 +46,24 @@ type Settings = {
   siteUrl: string;
   defaultSeoTitle: string | null;
   defaultSeoDescription: string | null;
+  phone: string | null;
+  openingHours: string | null;
+  priceRange: string | null;
+  serviceAreaDesc: string | null;
+  seoKeywords: string | null;
 };
+
+// 电话/营业时间/价格区间均读 DB（后台可改），env 仅作兜底
+function parseOpeningHours(label: string | null): { days: string[]; opens: string; closes: string } | null {
+  if (!label) return null;
+  const m = label.match(/(\d{1,2}):(\d{2})\s*[-–—到]\s*(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return {
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    opens: `${m[1].padStart(2, "0")}:${m[2]}`,
+    closes: `${m[3].padStart(2, "0")}:${m[4]}`,
+  };
+}
 
 export function websiteJsonLd(s: Settings) {
   return {
@@ -59,10 +76,10 @@ export function websiteJsonLd(s: Settings) {
   };
 }
 
-// 本地服务主体：数据全部来自 config 真实信息，不伪造评分/评价
 export function localBusinessJsonLd(s: Settings) {
-  const phone = SITE.phone;
-  const tel = phone ? `+86${phone.replace(/^86/, "")}` : undefined;
+  const phone = s.phone || process.env.NEXT_PUBLIC_CONTACT_PHONE;
+  const tel = phone ? `+86${phone.replace(/^86/, "").replace(/[\s-]/g, "")}` : undefined;
+  const hours = parseOpeningHours(s.openingHours);
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -71,10 +88,10 @@ export function localBusinessJsonLd(s: Settings) {
     alternateName: "渭南电脑维修_监控安装",
     url: s.siteUrl,
     telephone: tel,
-    description: s.defaultSeoDescription ?? "渭南市临渭区电脑维修、监控安装维修、弱电施工、网络布线个人技术服务",
+    description: s.defaultSeoDescription ?? s.serviceAreaDesc ?? "渭南市临渭区电脑维修、监控安装维修、弱电施工、网络布线个人技术服务",
     image: [`${s.siteUrl}/og-image.svg`],
     logo: `${s.siteUrl}/favicon.svg`,
-    priceRange: SITE.priceRange,
+    priceRange: s.priceRange || "50-500元",
     currenciesAccepted: "CNY",
     paymentAccepted: "现金,微信支付,支付宝",
     address: {
@@ -91,14 +108,16 @@ export function localBusinessJsonLd(s: Settings) {
       latitude: 34.5022,
       longitude: 109.5096,
     },
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: SITE.openingHours.days,
-        opens: SITE.openingHours.opens,
-        closes: SITE.openingHours.closes,
-      },
-    ],
+    openingHoursSpecification: hours
+      ? [
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: hours.days,
+            opens: hours.opens,
+            closes: hours.closes,
+          },
+        ]
+      : undefined,
     areaServed: SITE.serviceAreas.map((a) => ({
       "@type": "AdministrativeArea",
       name: a.isPrimary ? `陕西省渭南市${a.name}` : `陕西省渭南市${a.name}（仅咨询）`,
