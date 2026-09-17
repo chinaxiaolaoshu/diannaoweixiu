@@ -1,7 +1,7 @@
 import {
   db, articles, categories, tags, articleCategories, articleTags, siteSettings,
 } from "@repo/db";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, ne, or } from "drizzle-orm";
 
 // 构建期数据库可能不可达（CI、首次部署）。此处统一容错：
 // 失败时返回空数据，页面构建成功后由 ISR（revalidate）在运行时自动补全真实数据。
@@ -91,6 +91,18 @@ export async function getTagPage(slug: string) {
     []
   );
   return { tag, items: rows.map((r) => r.a) };
+}
+
+// 相关推荐：同库最新已发布文章（排除当前文章），用于文章页内链
+export async function listRelated(slug: string, limit = 4) {
+  const rows = await safe(
+    () => db.select().from(articles)
+      .where(and(eq(articles.status, "published"), ne(articles.slug, slug)))
+      .orderBy(desc(articles.publishedAt))
+      .limit(limit),
+    []
+  );
+  return rows;
 }
 
 export async function searchArticles(q: string) {
