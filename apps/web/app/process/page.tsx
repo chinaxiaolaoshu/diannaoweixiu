@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
+import { getSettings, getContactPhone } from "@/lib/queries";
 import { pageMetadata, breadcrumbJsonLd, BASE } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -38,7 +39,9 @@ const STEPS = [
   },
 ];
 
-export default function ProcessPage() {
+export default async function ProcessPage() {
+  const s = await getSettings();
+  const phone = getContactPhone(s);
   const breadcrumbs = [
     { name: "首页", url: `${BASE}/` },
     { name: "服务流程", url: `${BASE}/process` },
@@ -70,12 +73,12 @@ export default function ProcessPage() {
           <li>质保政策：同一故障 7 天内免费返修；更换硬件按厂家质保执行；监控工程整体 3 个月免费维护。</li>
           <li>价格区间参考请查看 <Link href="/#price" className="text-blue-600 hover:underline">首页价格表</Link>，或直接电话咨询。</li>
         </ul>
-        {SITE.phone && (
+        {phone && (
           <Link
-            href={`tel:${SITE.phone}`}
+            href={`tel:${phone}`}
             className="inline-flex items-center justify-center mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium min-h-[48px]"
           >
-            电话预约：{SITE.phone}
+            电话预约：{phone}
           </Link>
         )}
       </section>
