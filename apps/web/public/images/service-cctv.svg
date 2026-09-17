@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="监控安装示意图：摄像头、录像机与手机远程查看">
+  <rect width="200" height="200" rx="16" fill="#f0fdf4"/>
+  <rect x="26" y="40" width="60" height="40" rx="6" fill="#047857"/>
+  <circle cx="34" cy="60" r="12" fill="#10b981" stroke="#065f46" stroke-width="3"/>
+  <circle cx="34" cy="60" r="4" fill="#065f46"/>
+  <path d="M86 52 h10 v16 h-10z" fill="#065f46"/>
+  <path d="M30 80 v18 M78 80 v18" stroke="#334155" stroke-width="4"/>
+  <rect x="20" y="98" width="88" height="10" rx="3" fill="#334155"/>
+  <rect x="120" y="40" width="56" height="40" rx="5" fill="#0f172a"/>
+  <rect x="126" y="46" width="44" height="22" rx="2" fill="#10b981"/>
+  <circle cx="148" cy="74" r="3" fill="#34d399"/>
+  <rect x="120" y="98" width="56" height="52" rx="6" fill="#1e293b"/>
+  <rect x="128" y="106" width="40" height="16" rx="2" fill="#334155"/>
+  <circle cx="132" cy="132" r="3" fill="#34d399"/>
+  <circle cx="146" cy="132" r="3" fill="#64748b"/>
+  <circle cx="160" cy="132" r="3" fill="#64748b"/>
+  <path d="M104 60 h16" stroke="#64748b" stroke-width="3" stroke-dasharray="4 4"/>
+</svg>
