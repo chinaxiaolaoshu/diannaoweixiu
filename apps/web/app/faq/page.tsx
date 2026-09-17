@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SITE } from "@repo/config";
+import { getSettings, getContactPhone } from "@/lib/queries";
 import { pageMetadata, faqPageJsonLd, BASE } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -22,7 +23,9 @@ const FAQS = [
   { q: "农村、乡镇可以上门吗？", a: "可以，临渭区各乡镇村组均可上门，包括下邽、固市、崇凝、桥南、官道、三张等，偏远村镇请提前电话沟通上门时间。" },
 ];
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const s = await getSettings();
+  const phone = getContactPhone(s);
   return (
     <section>
       <script
@@ -42,12 +45,12 @@ export default function FaqPage() {
         ))}
       </div>
       <div className="mt-8 flex flex-wrap gap-4">
-        {SITE.phone && (
+        {phone && (
           <Link
-            href={`tel:${SITE.phone}`}
+            href={`tel:${phone}`}
             className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium min-h-[48px]"
           >
-            电话咨询：{SITE.phone}
+            电话咨询：{phone}
           </Link>
         )}
         <Link
