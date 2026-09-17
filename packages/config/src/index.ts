@@ -1,11 +1,66 @@
+// 站点单一信息源（NAP / 文案 / 结构化数据共用，严禁在各页面硬编码业务信息）
 export const SITE = {
-  name: "渭南IT技术服务",
+  name: "渭南电脑维修服务",
   domain: "0913610.xyz",
   url: "https://www.0913610.xyz",
   region: "陕西省渭南市临渭区",
   serviceArea: "服务渭南市及临渭区",
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "",
   wechat: process.env.NEXT_PUBLIC_CONTACT_WECHAT ?? "",
+
+  // —— NAP：营业时间 / 价格区间（JSON-LD 与页面展示共用，保持一致）——
+  openingHours: {
+    label: "周一至周日 08:00 – 21:00",
+    opens: "08:00",
+    closes: "21:00",
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  },
+  priceRange: "50-500元",
+  // 百度/Google 结构化数据要求 ISO 星期；中文星期用于页面展示
+  openingHoursLabel: "全年无休 08:00–21:00",
+
+  // —— 服务区域：临渭区主覆盖（真实覆盖），周边仅咨询 ——
+  serviceAreas: [
+    {
+      name: "临渭区",
+      isPrimary: true,
+      response: "2 小时内响应上门",
+      desc: "渭南市临渭区全域上门，含城区各街道、开发区及下辖乡镇，农村、家庭、商铺、办公室均可服务。",
+      places: [
+        "站南街道", "向阳街道", "解放街道", "杜桥街道", "双王街道", "良田街道", "信义街道",
+        "龙背街道", "辛市街道", "三张镇", "崇凝镇", "桥南镇", "阳郭镇", "下邽镇",
+        "固市镇", "官道镇", "官底镇", "蔺店镇", "交斜镇", "故市镇", "丰原镇", "闫村镇",
+      ],
+    },
+    {
+      name: "华州区",
+      isPrimary: false,
+      response: "电话/微信咨询",
+      desc: "暂不提供华州区上门服务，可电话或微信免费咨询，简单故障远程指导解决；如确需现场，可协商介绍临渭区周边师傅。",
+      places: ["华州街道", "杏林镇", "赤水镇", "高塘镇", "大明镇", "瓜坡镇"],
+    },
+    {
+      name: "渭南高新区",
+      isPrimary: true,
+      response: "2 小时内响应上门",
+      desc: "渭南高新技术产业开发区属临渭区服务范围，企业办公网络、监控与电脑维护正常上门。",
+      places: ["新区东路", "崇业路", "朝阳大街", "新盛路"],
+    },
+  ],
+
+  // —— 价格参考区间（页面与 Service 结构化数据共用，真实透明）——
+  priceTable: [
+    { item: "电脑系统重装", price: "80–150元", note: "Win10/11 系统重装，含驱动与常用软件安装" },
+    { item: "电脑清灰换硅脂", price: "80–120元", note: "解决散热卡顿、风扇噪音大" },
+    { item: "台式机硬件升级", price: "100–400元", note: "加固态硬盘/内存，含系统迁移" },
+    { item: "笔记本维修", price: "100–500元", note: "屏幕、键盘、主板芯片级维修" },
+    { item: "数据恢复", price: "100–500元", note: "误删、格式化、硬盘异响恢复" },
+    { item: "监控摄像头安装", price: "150–300元/个", note: "含布线、固定、调试与手机远程配置" },
+    { item: "监控维修", price: "80–300元/次", note: "无画面、无录像、手机连不上、夜视失效" },
+    { item: "网络布线（信息点）", price: "120–260元/点", note: "含网线、水晶头、测通与标签标识" },
+    { item: "WiFi 全屋覆盖", price: "200–600元", note: "按户型与 AP/面板数量计费" },
+  ],
+
   services: [
     {
       slug: "computer-repair",
@@ -51,3 +106,5 @@ export const SITE = {
 } as const;
 
 export type ServiceItem = (typeof SITE.services)[number];
+export type PriceItem = (typeof SITE.priceTable)[number];
+export type ServiceArea = (typeof SITE.serviceAreas)[number];
