@@ -5,11 +5,17 @@ import { pageMetadata } from "@/lib/seo";
 
 export const revalidate = 600;
 
-export const metadata: Metadata = pageMetadata({
-  title: "技术文章",
-  description: "渭南电脑维修、监控安装、网络布线相关技术文章与经验分享。",
-  path: "/articles",
-});
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string }> }): Promise<Metadata> {
+  const { page: pageStr } = await searchParams;
+  const page = Math.max(1, Number(pageStr) || 1);
+  // 第 2 页及以后的分页 URL 不收录，权重集中到 /articles，避免重复内容
+  return pageMetadata({
+    title: "技术文章",
+    description: "渭南电脑维修、监控安装、网络布线相关技术文章与经验分享。",
+    path: "/articles",
+    noindex: page > 1,
+  });
+}
 
 export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const { page: pageStr } = await searchParams;
